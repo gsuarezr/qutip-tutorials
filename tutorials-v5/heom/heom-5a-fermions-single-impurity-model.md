@@ -5,7 +5,7 @@ jupytext:
     extension: .md
     format_name: myst
     format_version: 0.13
-    jupytext_version: 1.16.1
+    jupytext_version: 1.16.4
 kernelspec:
   display_name: qutip-dev
   language: python
@@ -69,7 +69,7 @@ In this notebook we:
 
 ## Setup
 
-```{code-cell} ipython3
+```{code-cell}
 import contextlib
 import dataclasses
 import time
@@ -98,7 +98,7 @@ from IPython.display import display
 
 ## Helpers
 
-```{code-cell} ipython3
+```{code-cell}
 @contextlib.contextmanager
 def timer(label):
     """ Simple utility for timing functions:
@@ -112,7 +112,7 @@ def timer(label):
     print(f"{label}: {end - start}")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # Solver options:
 
 # We set store_ados to True so that we can
@@ -135,7 +135,7 @@ options = {
 
 And let us set up the system Hamiltonian, bath and system measurement operators:
 
-```{code-cell} ipython3
+```{code-cell}
 # Define the system Hamiltonian:
 
 # The system is a single fermion with energy level split e1:
@@ -144,7 +144,7 @@ e1 = 1.0
 H = e1 * d1.dag() * d1
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from qutip.core.environment import LorentzianEnvironment
 
 
@@ -156,7 +156,7 @@ envR=LorentzianEnvironment(T= 0.025851991,W=1,mu=-1,gamma=0.01,Nk=10)
 
 Let's plot the spectral density.
 
-```{code-cell} ipython3
+```{code-cell}
 w_list = np.linspace(-80, 80, 2000)
 
 fig, ax = plt.subplots(figsize=(12, 7))
@@ -180,11 +180,11 @@ ax.set_ylabel(r"$J(\omega)$")
 ax.legend();
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from qutip.core.environment import FermionicEnvironment
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 w_list = np.linspace(-30, 30, 2000)
 
 fenvL=FermionicEnvironment.from_spectral_density(envL.spectral_density(w_list),w_list,T=0.025851991,mu=1)
@@ -198,7 +198,7 @@ fpenvL=fenvL._approx_by_prony(method="espira-I",tlist=tk,Np=10,Nm=10,tag="L")
 fpenvR=fenvR._approx_by_prony(method="espira-I",tlist=tk,Np=10,Nm=10,tag="R")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 fig, ax = plt.subplots(figsize=(12, 7))
 ax.plot(
     w_list,envR.spectral_density(w_list) ,
@@ -220,7 +220,7 @@ ax.set_ylabel(r"$J(\omega)$")
 ax.legend();
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 fig, ax = plt.subplots(figsize=(12, 7))
 ax.plot(
     w_list,envL.correlation_function_plus(w_list).imag ,
@@ -242,11 +242,11 @@ ax.set_ylabel(r"$J(\omega)$")
 ax.legend();
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from scipy.signal.windows import *
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # def fg(w,x0=1):
 #     mask=w-x0<=0
 #     result=np.exp(-(w-x0)**2 / 0.03)
@@ -256,7 +256,7 @@ from scipy.signal.windows import *
 # plt.plot(w_list,fg(w_list))
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # from qutip.utilities import fermi_dirac
 # from scipy.fft import fftfreq
 
@@ -278,7 +278,7 @@ from scipy.signal.windows import *
 # result2[problematic_indices]=ff_safe*result[problematic_indices]
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # w_list = np.linspace(-20, 20, 1600)
 
 # fig, ax = plt.subplots(figsize=(12, 7))
@@ -319,12 +319,12 @@ from scipy.signal.windows import *
 # ax.legend();
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # plt.plot(w_list,envL.power_spectrum_plus(w_list)-result)
 # plt.ylim(-1e-8,1e-8)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 tk = np.linspace(-60, 60, 1000)
 
 
@@ -367,7 +367,7 @@ ax.set_ylabel(r"$S(\omega)$")
 ax.legend();
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 w_list = np.linspace(0, 60, 1000)
 
 fig, ax = plt.subplots(figsize=(12, 7))
@@ -415,7 +415,7 @@ One advantage of this simple model is that the steady state current to the baths
 
 See the [QuTiP-BoFiN paper](https://arxiv.org/abs/2010.10806) for a detailed description and references for the analytic result. Below we just perform the required integration numerically.
 
-```{code-cell} ipython3
+```{code-cell}
 from qutip.utilities import fermi_dirac
 def lamshift(self, w):
     """ Return the lamshift. """
@@ -457,7 +457,7 @@ To compare the analytical result above with the result from the HEOM, we need to
 
 In the function `state_current(...)` below, we extract the first level ADOs for the specified bath and sum the contributions to the current from each:
 
-```{code-cell} ipython3
+```{code-cell}
 def state_current(ado_state, bath_tag):
     """ Determine current from the given bath (either "R" or "L") to
         the system in the given ADO state.
@@ -481,7 +481,7 @@ def state_current(ado_state, bath_tag):
 
 Now we can calculate the steady state currents from the Pade and Matsubara HEOM results:
 
-```{code-cell} ipython3
+```{code-cell}
 # Times to solve for and initial system state:
 tlist = np.linspace(0, 100, 1000)
 rho0 = basis(2, 0) * basis(2, 0).dag()
@@ -499,7 +499,7 @@ with timer("Steady state solver time"):
     rho_ss_pade, ado_ss_pade = solver_pade.steady_state()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 curr_ss_pade_L = state_current(ado_ss_pade, "L")
 curr_ss_pade_R = state_current(ado_ss_pade, "R")
 
@@ -507,7 +507,7 @@ print(f"Pade steady state current (L): {curr_ss_pade_L}")
 print(f"Pade steady state current (R): {curr_ss_pade_R}")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # Times to solve for and initial system state:
 tlist = np.linspace(0, 100, 1000)
 rho0 = basis(2, 0) * basis(2, 0).dag()
@@ -525,7 +525,7 @@ with timer("Steady state solver time"):
     rho_ss_mats, ado_ss_mats= solver_mats.steady_state()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 curr_ss_mats_L = state_current(ado_ss_mats, "L")
 curr_ss_mats_R = state_current(ado_ss_mats, "R")
 
@@ -533,7 +533,7 @@ print(f"Matsubara steady state current (L): {curr_ss_mats_L}")
 print(f"Matsubara steady state current (R): {curr_ss_mats_R}")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # Times to solve for and initial system state:
 tlist = np.linspace(0, 100, 1000)
 rho0 = basis(2, 0) * basis(2, 0).dag()
@@ -556,15 +556,15 @@ with timer("Steady state solver time"):
     rho_ss_fit, ado_ss_fit = solver_fit.steady_state()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 rho_ss_fit
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 rho_ss_pade
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 fig, ax = plt.subplots(figsize=(12, 7))
 ax.plot(
     w_list,envL.correlation_function_plus(w_list).imag - fpenvL.correlation_function_plus(w_list).imag,
@@ -582,7 +582,7 @@ ax.set_ylabel(r"$J(\omega)$")
 ax.legend();
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 fig, ax = plt.subplots(figsize=(12, 7))
 ax.plot(
     w_list,envL.correlation_function_plus(w_list) - fpenvL.correlation_function_plus(w_list),
@@ -600,7 +600,7 @@ ax.set_ylabel(r"$J(\omega)$")
 ax.legend();
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 curr_ss_p_L = state_current(ado_ss_fit, "L")
 curr_ss_p_R = state_current(ado_ss_fit, "R")
 
@@ -612,7 +612,7 @@ Note that the currents from each bath balance as is required by the steady state
 
 Now let's compare all three:
 
-```{code-cell} ipython3
+```{code-cell}
 print(f"Pade current (R): {curr_ss_pade_R}")
 print(f"Matsubara current (R): {curr_ss_mats_R}")
 print(f"Fit (R): {curr_ss_p_R}")
@@ -620,7 +620,7 @@ print(f"Fit (R): {curr_ss_p_R}")
 print(f"Analytical curernt: {curr_ss_analytic}")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # Plot the Pade results
 fig, axes = plt.subplots(1, 1, sharex=True, figsize=(8, 8))
 
@@ -662,11 +662,11 @@ axes.set_xlabel('t', fontsize=28)
 axes.legend(fontsize=12);
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 assert 1==0
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # Theta (bias voltages)
 
 thetas = np.linspace(-4, 4, 100)
@@ -753,18 +753,18 @@ curr_ss_analytic_thetas = [
 # ]
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 curr_ss_pade_theta = [
     current_pade_for_theta(H, theta, Nk=6,method="pade")
     for theta in thetas
 ]
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from tqdm import tqdm
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 curr_ss_fit_theta = [
     current_pade_for_theta(H, theta, Nk=11,method="pde")
     for theta in tqdm(thetas)
@@ -789,7 +789,7 @@ We will calculate the steady state current for each `theta` both analytically an
 
 Below we plot the results and see that even with `Nk=6`, the HEOM Pade approximation gives good results for the steady state current. Increasing `Nk` to `10` gives very accurate results.
 
-```{code-cell} ipython3
+```{code-cell}
 fig, ax = plt.subplots(figsize=(12, 7))
 
 
@@ -821,7 +821,7 @@ ax.legend(fontsize=25);
 
 Using a semicircular spectral density
 
-```{code-cell} ipython3
+```{code-cell}
 def semicircle(w,W):
     result=np.zeros(len(w))
     mask=W>=w
@@ -831,23 +831,23 @@ def semicircle(w,W):
     
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 w_list=np.linspace(-300,300,10_000)
 plt.plot(w_list,semicircle(w_list,30))
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 J=semicircle(w_list,30)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 g=0.01
 w_list=np.linspace(-300,300,10_000)
 fenvL=FermionicEnvironment.from_spectral_density(g*semicircle(w_list,10),w_list,T=0.025851991,mu=1)
 fenvR=FermionicEnvironment.from_spectral_density(g*semicircle(w_list,10),w_list,T=0.025851991,mu=-1)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 # Times to solve for and initial system state:
 tlist = np.linspace(0, 30, 1000)
 rho0 = basis(2, 0) * basis(2, 0).dag()
@@ -869,24 +869,23 @@ with timer("Steady state solver time"):
     rho_ss_fit, ado_ss_fit = solver_fit.steady_state()
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 rho_ss_fit
 ```
 
-```{code-cell} ipython3
-
+```{code-cell}
 curr_ss_p_L = state_current(ado_ss_fit, "L")
 curr_ss_p_R = state_current(ado_ss_fit, "R")
 print(f"Fit (R): {curr_ss_p_R}")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 curr_ss_analytic = analytical_steady_state_current(fenvL, fenvR, e1)
 
 print(f"Analytical steady state current: {curr_ss_analytic}")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 plt.plot(tlist,fenvL.correlation_function_plus(tlist).real)
 plt.plot(tlist,fpenvL.correlation_function_plus(tlist).real,"--")
 plt.show()
@@ -894,7 +893,7 @@ plt.plot(tlist,fenvL.correlation_function_plus(tlist).imag)
 plt.plot(tlist,fpenvL.correlation_function_plus(tlist).imag,"--")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 plt.plot(tlist,fenvL.correlation_function_minus(tlist).real)
 plt.plot(tlist,fpenvL.correlation_function_minus(tlist).real,"--")
 plt.show()
@@ -902,21 +901,21 @@ plt.plot(tlist,fenvL.correlation_function_minus(tlist).imag)
 plt.plot(tlist,fpenvL.correlation_function_minus(tlist).imag,"--")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 w_list=np.linspace(-20,20,10_000)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 plt.plot(w_list,fenvL.power_spectrum_plus(w_list).real)
 plt.plot(w_list,fpenvL.power_spectrum_plus(w_list).real,"--")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 plt.plot(w_list,fenvL.power_spectrum_minus(w_list).real)
 plt.plot(w_list,fpenvL.power_spectrum_minus(w_list).real,"--")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 w_list=np.linspace(-100,100,10_000)
 plt.plot(w_list,g*semicircle(w_list,10))
 plt.plot(w_list,fenvL.spectral_density(w_list),"--")
@@ -925,13 +924,13 @@ plt.plot(w_list,fpenvL.spectral_density(w_list),"--")
 # plt.ylim(-1e-12,1e-12)
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 curr_ss_analytic = analytical_steady_state_current(fenvL, fenvR, e1)
 
 print(f"Analytical steady state current: {curr_ss_analytic}")
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 def current_analytic_for_theta(e1, theta):
     """ Return the analytic current for a given theta. """
     fenvL=FermionicEnvironment.from_spectral_density(g*semicircle(w_list,3),w_list,T=0.025851991,mu=theta/2)
@@ -970,18 +969,18 @@ curr_ss_analytic_thetas = [
 ]
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 from tqdm import tqdm
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 curr_ss_fit_theta = [
     current_pade_for_theta(H, theta, Nk=5,method="pde")
     for theta in tqdm(thetas)
 ]
 ```
 
-```{code-cell} ipython3
+```{code-cell}
 fig, ax = plt.subplots(figsize=(12, 7))
 
 
@@ -1012,7 +1011,7 @@ ax.legend(fontsize=25);
 
 ## About
 
-```{code-cell} ipython3
+```{code-cell}
 qutip.about()
 ```
 
@@ -1020,7 +1019,7 @@ qutip.about()
 
 This section can include some tests to verify that the expected outputs are generated within the notebook. We put this section at the end of the notebook, so it's not interfering with the user experience. Please, define the tests using assert, so that the cell execution fails if a wrong output is generated.
 
-```{code-cell} ipython3
+```{code-cell}
 assert np.allclose(curr_ss_pade_L + curr_ss_pade_R, 0)
 assert np.allclose(curr_ss_mats_L + curr_ss_mats_R, 0)
 assert np.allclose(curr_ss_pade_R, curr_ss_analytic, rtol=1e-4)
