@@ -69,7 +69,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from qutip import tensor,qeye,spre,operator_to_vector,expect,qeye,fdestroy
 from qutip.solver.heom import HEOMSolver
-from qutip.core import LorentzianEnvironment
+from qutip.core import LorentzianEnvironment,FermionicEnvironment
 import  scipy.sparse as sp
 from scipy.sparse.linalg import lgmres
 import qutip
@@ -94,21 +94,21 @@ d2 = fdestroy(N,1) # second site
 # Bath paramters: both system and bath parameters are taken from Cirio et al.
 mu = 0.  #chemical potential
 Gamma  = 1  #coupling strength
-W = 2.5 #bath width
+W = 10*Gamma #bath width
 
 #system params:
 #coulomb repulsion
-U = 3 * np.pi * Gamma
+U = 3*np.pi * Gamma
 #impurity energy
 w0 = - U / 2.
 
-T = 0.2 * Gamma # Temperature
+T =  Gamma/W # Temperature
 
 # Hamiltonian of the system
 H = w0 *(d1.dag() * d1 + d2.dag() * d2) + U * d1.dag() * d1 * d2.dag() * d2
 
 # Environment
-env = LorentzianEnvironment(W=W,gamma=2*Gamma,T=T,mu=mu)
+env = LorentzianEnvironment(W=W,gamma=Gamma,T=T,mu=mu)
 ```
 
 In our example both leads will be identical environments, we now use the
@@ -234,7 +234,7 @@ def density_of_states(wlist,result,fullss):
 We now proceed with the calculation
 
 ```python
-wlist = np.linspace(-10,15,500)
+wlist = np.linspace(-15,15,500)
 
 ddos=density_of_states(wlist,HEOMPade,fullss)
 ```
@@ -247,8 +247,8 @@ plt.plot(wlist,ddos,label=r"$N_k = 2$",linewidth=4)
 
 plt.legend(fontsize=10)
 
-plt.xlim(-10,15)
-plt.yticks([0.,1,2],[0,1,2])
+plt.xlim(-10,10)
+#plt.yticks([0.,1,2],[0,1,2])
 plt.xlabel(r"$\omega/\Gamma$",fontsize=20,labelpad=-10)
 plt.ylabel(r"$2\pi \Gamma A(\omega)$ ",fontsize=20)
 
@@ -286,8 +286,8 @@ plt.plot(wlist,ddos,"--",label=r"$N_k = 2$",linewidth=4)
 
 plt.legend(fontsize=12)
 
-plt.xlim(-10,15)
-plt.yticks([0.,1,2],[0,1,2])
+plt.xlim(-10,10)
+#plt.yticks([0.,1,2],[0,1,2])
 plt.xlabel(r"$\omega/\Gamma$",fontsize=20,labelpad=-10)
 plt.ylabel(r"$2\pi \Gamma A(\omega)$ ",fontsize=20)
 
@@ -326,8 +326,8 @@ plt.plot(wlist,ddos4Odd,label=r"$N_k = 4$ Odd Parity",linewidth=4)
 plt.plot(wlist,ddosOdd,"--",label=r"$N_k = 2$ Odd Parity",linewidth=4)
 plt.legend(fontsize=12)
 
-plt.xlim(-10,15)
-plt.yticks([0.,1,2],[0,1,2])
+plt.xlim(-10,10)
+#plt.yticks([0.,1,2],[0,1,2])
 plt.xlabel(r"$\omega/\Gamma$",fontsize=20,labelpad=-10)
 plt.ylabel(r"$2\pi \Gamma A(\omega)$ ",fontsize=20)
 
@@ -336,7 +336,65 @@ plt.show()
 ```
 
 We have used `QuTiP`'s `HEOMSolver` to generate the density of states, and 
-visualized the Kondo Peak.
+visualized the Kondo Peak. For the Lorentzian spectral density, let us take a
+step further and keep lowering the temperature as $T \to 0$ the peak should 
+approach one. Unfortunately, the pade approximation does not work at $T=0$
+and becomes more expensive as $T \to 0$. To remedy this we will use  ESPIRA
+to obtain the exponents
+
+```python
+env = LorentzianEnvironment(W=W,gamma=Gamma,T=T/2,mu=mu)
+envL = env.approximate("pade",Nk=5,tag="L") #left lead
+envR = env.approximate("pade",Nk=5,tag="R") #right lead
+N=7
+# wlist2=np.concatenate([-np.logspace(6,-12,3000),np.logspace(-12,6,3000)])
+# envLp,f1 = env.approximate("aaa",wlist2,Np_max=N,Nm_max=N,tag="L") #left lead
+# envRp,f2 = env.approximate("aaa",wlist2,Np_max=N,Nm_max=N,tag="R") #right lead
+tlist=np.linspace(0,10,10_000)
+envLp,f1 = env.approximate("espira-I",tlist,Np=N,Nm=N,tag="L") #left lead
+envRp,f2 = env.approximate("espira-I",tlist,Np=N,Nm=N,tag="R") #right lead
+print(f1["summary"])
+```
+
+```python
+HEOMPadeLow = HEOMSolver(H, [(envL,d1),(envR,d2)], Ncc)  
+HEOMPadeLowOdd = HEOMSolver(H, [(envL,d1),(envR,d2)], Ncc, odd_parity=True)  
+rhossLow, fullss= HEOMPadeLow.steady_state()
+expect(rhossLow, d1.dag()*d1)
+```
+
+```python
+ddosLowOdd=density_of_states(wlist,HEOMPadeLowOdd,fullss)
+```
+
+```python
+HEOMProny = HEOMSolver(H, [(envLp,d1),(envRp,d2)], Ncc)  
+HEOMPronyOdd = HEOMSolver(H, [(envLp,d1),(envRp,d2)], Ncc, odd_parity=True)  
+rhossprony, fullss= HEOMProny.steady_state()
+expect(rhossprony, d1.dag()*d1)
+```
+
+```python
+ddosprony=density_of_states(wlist,HEOMPronyOdd,fullss)
+```
+
+```python
+plt.plot(wlist,ddosLowOdd,label=r"Pade",linewidth=4)
+plt.plot(wlist,ddosprony,"--",label=r"ESPIRA",linewidth=4)
+plt.legend(fontsize=12)
+
+plt.xlim(-10,10)
+#plt.yticks([0.,1,2],[0,1,2])
+plt.xlabel(r"$\omega/\Gamma$",fontsize=20,labelpad=-10)
+plt.ylabel(r"$2\pi \Gamma A(\omega)$ ",fontsize=20)
+
+         
+plt.show()
+```
+
+We can now create an fermionic environment from this spectral density to carry
+out our simulation
+
 
 ### About
 
